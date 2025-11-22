@@ -1,0 +1,66 @@
+{% extends 'dashboard.html' %}
+{% block content %}
+<div class="flex flex-1 items-center justify-center w-full h-full min-h-0">
+    <div class="max-w-7xl w-full bg-white bg-opacity-95 rounded-2xl shadow-2xl p-16 flex flex-col items-center h-full justify-center">
+        <div class="mb-6">
+            <div class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-300 to-blue-500 flex items-center justify-center shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            </div>
+        </div>
+        <h2 class="text-4xl font-extrabold text-blue-700 mb-2">Mark Attendance</h2>
+        <p class="text-gray-500 mb-2 text-center text-lg">Current Slot: <span class="font-bold text-blue-700">{{ slot if slot_enabled else 'No Active Slot' }}</span></p>
+        <p class="text-gray-500 mb-2 text-center text-lg">Available for Attendance: <span class="font-bold text-green-700">{{ available_slot if available_slot else 'None' }}</span></p>
+        <p class="text-gray-500 mb-8 text-center text-lg">Capture your face using the webcam to mark your attendance. Attendance can only be marked during the allowed time slots.</p>
+        <div class="mb-8 text-gray-700 w-full flex flex-col md:flex-row gap-8 justify-center items-center">
+            <div class="bg-blue-50 rounded-lg px-8 py-5 flex flex-col items-center w-full md:w-auto">
+                <span class="font-semibold text-blue-700 text-lg">Morning Slot</span>
+                <span class="text-base">8:00 AM to 10:00 AM</span>
+            </div>
+            <div class="bg-blue-50 rounded-lg px-8 py-5 flex flex-col items-center w-full md:w-auto">
+                <span class="font-semibold text-blue-700 text-lg">Afternoon Slot</span>
+                <span class="text-base">12:30 PM to 2:30 PM</span>
+            </div>
+        </div>
+        {% if message %}
+            <div class="mb-4 text-center {% if success %}text-green-600{% else %}text-red-600{% endif %} font-semibold text-lg">{{ message }}</div>
+        {% endif %}
+        {% if slot_enabled %}
+            {% if not slot_available %}
+                <div class="text-center text-green-700 font-semibold text-lg mb-4">Attendance already marked for this slot.</div>
+            {% else %}
+                <form method="POST" id="faceForm" class="w-full flex flex-col items-center">
+                    <div class="flex flex-col items-center mb-6 w-full">
+                        <video id="webcam" autoplay playsinline width="320" height="240" class="rounded-lg border shadow"></video>
+                        <canvas id="canvas" width="320" height="240" class="hidden"></canvas>
+                        <button type="button" id="captureBtn" class="mt-4 bg-blue-600 text-white py-2 px-6 rounded-lg font-semibold shadow hover:bg-blue-700 transition text-lg">Capture</button>
+                    </div>
+                    <input type="hidden" name="face_image_data" id="face_image_data" />
+                    <button type="submit" id="submitBtn" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold shadow hover:bg-green-700 transition text-lg mt-2 hidden">Mark Attendance</button>
+                </form>
+                <script>
+                const webcam = document.getElementById('webcam');
+                const canvas = document.getElementById('canvas');
+                const captureBtn = document.getElementById('captureBtn');
+                const submitBtn = document.getElementById('submitBtn');
+                const faceImageData = document.getElementById('face_image_data');
+                const constraints = { video: true };
+                navigator.mediaDevices.getUserMedia(constraints)
+                    .then((stream) => { webcam.srcObject = stream; })
+                    .catch((err) => { alert('Could not access webcam: ' + err); });
+                captureBtn.onclick = function() {
+                    canvas.getContext('2d').drawImage(webcam, 0, 0, canvas.width, canvas.height);
+                    const dataURL = canvas.toDataURL('image/jpeg');
+                    faceImageData.value = dataURL;
+                    submitBtn.classList.remove('hidden');
+                    captureBtn.classList.add('hidden');
+                    webcam.classList.add('hidden');
+                    canvas.classList.remove('hidden');
+                };
+                </script>
+            {% endif %}
+        {% else %}
+        <div class="text-center text-yellow-600 font-semibold mt-4 text-lg">Attendance can only be marked during the allowed time slots.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

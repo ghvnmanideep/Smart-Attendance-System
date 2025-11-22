@@ -1,0 +1,74 @@
+{% extends 'dashboard.html' %}
+{% block content %}
+<div class="flex flex-1 items-center justify-center w-full h-full min-h-0 bg-gradient-to-br from-blue-200 via-indigo-300 to-indigo-500">
+    <div class="w-full max-w-8xl bg-white bg-opacity-95 rounded-2xl shadow-2xl p-16 flex flex-col items-center h-full justify-center">
+        <h2 class="text-3xl font-bold mb-4 text-center text-blue-700">Register Your Face</h2>
+        <p class="text-lg text-gray-700 mb-6 text-center">Please capture <span class="font-semibold text-blue-600">at least 3 images</span> of your face from different angles for better recognition accuracy.</p>
+        <div class="flex flex-col md:flex-row gap-12 mb-8 w-full justify-center items-center">
+            <div class="flex flex-col items-center">
+                <span class="text-base font-semibold mb-2 text-blue-700">Example Angles</span>
+                <div class="flex gap-4">
+                    <img src="https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&w=80&h=80&fit=crop" alt="Front" class="w-24 h-24 rounded-full border-2 border-blue-300 shadow" title="Front View">
+                    <img src="https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&w=80&h=80&fit=crop" alt="Left" class="w-24 h-24 rounded-full border-2 border-blue-300 shadow" title="Left Angle">
+                    <img src="https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&w=80&h=80&fit=crop" alt="Right" class="w-24 h-24 rounded-full border-2 border-blue-300 shadow" title="Right Angle">
+                </div>
+                <span class="text-xs text-gray-500 mt-2 text-center">Look straight, then turn your head slightly left and right.</span>
+            </div>
+            <div class="flex flex-col items-center">
+                <span class="text-base font-semibold mb-2 text-blue-700">Live Capture</span>
+                <video id="webcam" autoplay playsinline width="400" height="300" class="rounded-lg border-2 border-blue-200 shadow"></video>
+                <canvas id="canvas" width="400" height="300" class="hidden"></canvas>
+                <div class="flex gap-2 mt-4">
+                    <button type="button" id="captureBtn" class="bg-blue-600 text-white py-2 px-6 rounded-lg font-semibold shadow hover:bg-blue-700 transition text-lg">Capture Angle</button>
+                    <button type="button" id="resetBtn" class="bg-gray-400 text-white py-2 px-4 rounded-lg font-semibold shadow hover:bg-gray-500 transition text-lg">Reset</button>
+                </div>
+                <div class="mt-2 text-sm text-gray-700" id="countDisplay">Captured: 0 / 3</div>
+            </div>
+        </div>
+        {% if message %}
+        <div class="mb-4 text-center {% if registered %}text-green-600{% else %}text-red-600{% endif %} font-semibold">{{ message }}</div>
+        {% endif %}
+        {% if not registered %}
+        <form method="POST" id="faceForm" class="w-full flex flex-col items-center">
+            <input type="hidden" name="face_images_data" id="face_images_data" />
+            <button type="submit" id="submitBtn" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold shadow hover:bg-green-700 transition text-lg mt-2 hidden">Register Face</button>
+        </form>
+        <script>
+        const webcam = document.getElementById('webcam');
+        const canvas = document.getElementById('canvas');
+        const captureBtn = document.getElementById('captureBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const faceImagesData = document.getElementById('face_images_data');
+        const countDisplay = document.getElementById('countDisplay');
+        let images = [];
+        const constraints = { video: true };
+        navigator.mediaDevices.getUserMedia(constraints)
+            .then((stream) => { webcam.srcObject = stream; })
+            .catch((err) => { alert('Could not access webcam: ' + err); });
+        captureBtn.onclick = function() {
+            canvas.getContext('2d').drawImage(webcam, 0, 0, canvas.width, canvas.height);
+            const dataURL = canvas.toDataURL('image/jpeg');
+            images.push(dataURL);
+            countDisplay.textContent = `Captured: ${images.length} / 3`;
+            if (images.length >= 3) {
+                submitBtn.classList.remove('hidden');
+                captureBtn.classList.add('hidden');
+            }
+            faceImagesData.value = JSON.stringify(images);
+        };
+        resetBtn.onclick = function() {
+            images = [];
+            countDisplay.textContent = 'Captured: 0 / 3';
+            submitBtn.classList.add('hidden');
+            captureBtn.classList.remove('hidden');
+            faceImagesData.value = '';
+        };
+        </script>
+        {% else %}
+        <div class="text-center text-blue-700 font-semibold mt-4 text-lg">You have already registered your face. If you need to update it, please contact the admin.</div>
+        {% endif %}
+        <a href="/dashboard" class="mt-6 text-blue-500 hover:underline">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %} 

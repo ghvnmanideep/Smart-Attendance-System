@@ -1,0 +1,6 @@
+Flask
+pymongo
+face_recognition
+dlib
+numpy
+pillow 
