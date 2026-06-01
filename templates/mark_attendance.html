@@ -1,7 +1,7 @@
 {% extends 'dashboard.html' %}
-{% block content %}
+{% block dashboard_content %}
 <div class="flex flex-1 items-center justify-center w-full h-full min-h-0">
-    <div class="max-w-7xl w-full bg-white bg-opacity-95 rounded-2xl shadow-2xl p-16 flex flex-col items-center h-full justify-center">
+    <div class="max-w-7xl w-full bg-white bg-opacity-95 rounded-2xl shadow-2xl p-6 sm:p-10 md:p-16 flex flex-col items-center h-full justify-center">
         <div class="mb-6">
             <div class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-300 to-blue-500 flex items-center justify-center shadow-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -30,7 +30,7 @@
             {% else %}
                 <form method="POST" id="faceForm" class="w-full flex flex-col items-center">
                     <div class="flex flex-col items-center mb-6 w-full">
-                        <video id="webcam" autoplay playsinline width="320" height="240" class="rounded-lg border shadow"></video>
+                        <video id="webcam" autoplay playsinline class="w-full max-w-[320px] h-auto rounded-lg border shadow"></video>
                         <canvas id="canvas" width="320" height="240" class="hidden"></canvas>
                         <button type="button" id="captureBtn" class="mt-4 bg-blue-600 text-white py-2 px-6 rounded-lg font-semibold shadow hover:bg-blue-700 transition text-lg">Capture</button>
                     </div>

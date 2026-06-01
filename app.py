@@ -1,7 +1,8 @@
 # Required: pip install flask pymongo face_recognition dlib pillow numpy
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, Response
 from pymongo import MongoClient
 import datetime
+import os
 from bson.objectid import ObjectId
 import face_recognition
 import numpy as np
@@ -9,12 +10,14 @@ import base64
 from PIL import Image
 from io import BytesIO
 import json
+import csv
+import io
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
 
 # MongoDB Atlas connection (replace with your actual URI and DB name)
-MONGO_URI = 'mongodb+srv://gnana1313:Gnana1212@dbs.8wngtib.mongodb.net/?retryWrites=true&w=majority&appName=DBs'
+MONGO_URI = os.environ.get('MONGO_URI', 'mongodb+srv://gnana1313:Gnana1212@dbs.8wngtib.mongodb.net/?retryWrites=true&w=majority&appName=DBs')
 DB_FACE = 'attendance_face_recognition'
 client = MongoClient(MONGO_URI)
 db_face = client[DB_FACE]
@@ -288,24 +291,31 @@ def admin_requests():
 @app.route('/admin/attendance')
 @login_required_admin
 def admin_attendance():
-    filter_rollno = request.args.get('rollno', '').strip()
+    filter_query = request.args.get('search', '').strip().lower()
     filter_date = request.args.get('date', '').strip()
-    now = datetime.datetime.now()
-    days_completed = now.day
-    total_sessions = days_completed * 2
+    
+    unique_dates = len(attendance_face.distinct('date'))
+    total_sessions = unique_dates * 2 if unique_dates > 0 else 0
+    
     student_list = list(students.find())
     attendance_table = []
     session_query = {}
+    
     if filter_date:
         session_query['date'] = filter_date
         total_sessions = 2
+        
     for student in student_list:
         rollno = student['rollno']
-        name = student['name']
-        if filter_rollno and filter_rollno != rollno:
-            continue
+        name = student.get('name', '')
+        
+        if filter_query:
+            if filter_query not in rollno.lower() and filter_query not in name.lower():
+                continue
+                
         attended = attendance_face.count_documents({'rollno': rollno, **session_query})
         percent = round((attended / total_sessions) * 100, 2) if total_sessions > 0 else 0.0
+        
         attendance_table.append({
             'rollno': rollno,
             'name': name,
@@ -313,7 +323,45 @@ def admin_attendance():
             'sessions_attended': attended,
             'attendance_percent': percent
         })
-    return render_template('admin_attendance.html', attendance_table=attendance_table, filter_rollno=filter_rollno, filter_date=filter_date, students=student_list)
+    return render_template('admin_attendance.html', attendance_table=attendance_table, filter_query=request.args.get('search', '').strip(), filter_date=filter_date, students=student_list)
+
+@app.route('/admin/attendance/export')
+@login_required_admin
+def export_attendance():
+    filter_query = request.args.get('search', '').strip().lower()
+    filter_date = request.args.get('date', '').strip()
+    
+    unique_dates = len(attendance_face.distinct('date'))
+    total_sessions = unique_dates * 2 if unique_dates > 0 else 0
+    
+    student_list = list(students.find())
+    session_query = {}
+    if filter_date:
+        session_query['date'] = filter_date
+        total_sessions = 2
+        
+    si = io.StringIO()
+    cw = csv.writer(si)
+    cw.writerow(['Roll No', 'Name', 'Total Sessions', 'Sessions Attended', 'Attendance %'])
+    
+    for student in student_list:
+        rollno = student['rollno']
+        name = student.get('name', '')
+        
+        if filter_query:
+            if filter_query not in rollno.lower() and filter_query not in name.lower():
+                continue
+                
+        attended = attendance_face.count_documents({'rollno': rollno, **session_query})
+        percent = round((attended / total_sessions) * 100, 2) if total_sessions > 0 else 0.0
+        cw.writerow([rollno, name, total_sessions, attended, f"{percent}%"])
+        
+    output = si.getvalue()
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={"Content-disposition": "attachment; filename=attendance_report.csv"}
+    )
 
 if __name__ == '__main__':
     app.run(debug=True) 

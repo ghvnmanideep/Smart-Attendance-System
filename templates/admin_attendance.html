@@ -1,7 +1,7 @@
 {% extends 'admin_dashboard.html' %}
-{% block content %}
+{% block admin_content %}
 <div class="flex flex-1 items-center justify-center w-full h-full min-h-0">
-    <div class="max-w-7xl w-full bg-white bg-opacity-95 rounded-2xl shadow-2xl p-16 flex flex-col items-center h-full justify-center">
+    <div class="max-w-7xl w-full bg-white bg-opacity-95 rounded-2xl shadow-2xl p-6 sm:p-10 md:p-16 flex flex-col items-center h-full justify-center">
         <div class="flex items-center mb-8">
             <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-300 to-blue-500 flex items-center justify-center shadow-lg mr-4">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a2 2 0 012-2h2a2 2 0 012 2v2m-6 4h6a2 2 0 002-2v-6a2 2 0 00-2-2h-2a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
@@ -10,14 +10,18 @@
         </div>
         <form method="GET" class="mb-6 flex flex-wrap gap-4 items-end w-full justify-center">
             <div>
-                <label class="block font-semibold mb-1">Filter by Roll No</label>
-                <input type="text" name="rollno" value="{{ filter_rollno }}" class="px-3 py-2 border rounded" placeholder="Enter Roll No" />
+                <label class="block font-semibold mb-1">Search by Roll No or Name</label>
+                <input type="text" name="search" value="{{ filter_query }}" class="px-3 py-2 border rounded" placeholder="Search..." />
             </div>
             <div>
                 <label class="block font-semibold mb-1">Filter by Date</label>
                 <input type="date" name="date" value="{{ filter_date }}" class="px-3 py-2 border rounded" title="Filter by Date" />
             </div>
-            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Filter</button>
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 font-semibold shadow">Apply Filters</button>
+            <a href="{{ url_for('export_attendance', search=filter_query, date=filter_date) }}" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 font-semibold shadow flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                Export CSV
+            </a>
         </form>
         <div class="overflow-x-auto w-full">
             <table class="min-w-full table-auto border rounded-xl shadow-lg overflow-hidden">
@@ -37,7 +41,15 @@
                         <td class="px-6 py-4 border-b text-gray-700 text-base text-left">{{ row.name }}</td>
                         <td class="px-6 py-4 border-b text-gray-700 text-base text-left">{{ row.total_sessions }}</td>
                         <td class="px-6 py-4 border-b text-gray-700 text-base text-left">{{ row.sessions_attended }}</td>
-                        <td class="px-6 py-4 border-b text-gray-700 text-base text-left">{{ row.attendance_percent }}%</td>
+                        <td class="px-6 py-4 border-b text-left">
+                            {% if row.attendance_percent >= 75 %}
+                                <span class="bg-green-100 text-green-800 font-bold px-3 py-1 rounded-full text-sm inline-block min-w-[60px] text-center">{{ row.attendance_percent }}%</span>
+                            {% elif row.attendance_percent > 0 %}
+                                <span class="bg-red-100 text-red-800 font-bold px-3 py-1 rounded-full text-sm inline-block min-w-[60px] text-center">{{ row.attendance_percent }}%</span>
+                            {% else %}
+                                <span class="bg-gray-100 text-gray-800 font-bold px-3 py-1 rounded-full text-sm inline-block min-w-[60px] text-center">0.0%</span>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% else %}
                     <tr>

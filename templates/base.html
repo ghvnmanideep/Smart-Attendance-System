@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Smart Attendance System{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Add Font Awesome for icons if needed, or stick to SVGs -->
+    {% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}bg-gradient-to-br from-blue-200 via-indigo-300 to-indigo-500 min-h-screen flex flex-col{% endblock %} text-gray-800 font-sans">
+    {% block content %}{% endblock %}
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

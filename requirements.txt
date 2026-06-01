@@ -3,4 +3,6 @@ pymongo
 face_recognition
 dlib
 numpy
-pillow 
+pillow
+gunicorn
+waitress 
